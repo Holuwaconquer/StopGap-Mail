@@ -1,0 +1,275 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    scroll-behavior: smooth !important;
+    font-family: "Oswald", sans-serif;
+}
+body{
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #222;
+    color: #fff;
+    /* font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; */
+}
+.container{
+    padding: 3%;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    justify-content: center;
+}
+.navbar{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 3em;
+}
+.navLink a{
+    color: white;
+    text-decoration: none;
+    padding: 0 10px 0 0;
+    position: relative;
+}
+.navLink a::before{
+    content: "";
+    position: absolute;
+    width: 0%;
+    height: 3px;
+    background-color: rgb(113, 113, 242);
+    bottom: 0;
+    left: 0;
+    transition: width 0.2s linear;
+}
+.navLink a:hover::before{
+    width: 60%;
+}
+#active::before{
+    content: "";
+    position: absolute;
+    width: 60%;
+    height: 3px;
+    background-color: rgb(113, 113, 242);
+    bottom: -2px;
+    left: 0;
+    transition: width 0.2s linear;
+}
+.child1{
+    display: flex;
+    flex-direction: column;
+    gap: 4em;
+    align-items: flex-start;
+}
+.child2{
+    width: 100%;
+    align-self: center;
+}
+.child2 img{
+    width: 100%;
+}
+.tempMailContent h2{
+    margin-bottom: 20px;
+}
+.tempMailContent p{
+    font-size: 16px;
+    width: 80%;
+}
+.emailBox{
+    padding: 25px 30px;
+    border: 2px dotted #dbdbdb;
+    width: 90%;
+    border-radius: 4px;
+}
+.emailBox h4{
+    margin-bottom: 30px;
+}
+.emailBox .email-container{
+    margin-bottom: 30px;
+    position: relative;
+}
+.emailBox .email-container i{
+    position: absolute;
+    font-size: 1.5em;
+    top: 15px;
+    right: 10px;
+    color: #999;
+    cursor: pointer;
+}
+.Tempicon span{
+    display: flex;
+    align-items: center;
+    gap: 1em;
+}
+.emailBox .email-container input{
+    width: 100%;
+    padding: 15px;
+    border: none;
+    outline: none;
+    border-radius: 4px;
+    background-color: #333;
+    color: white;
+}
+.inboxBtn{
+    padding: 10px 20px;
+    border: none;
+    outline: none;
+    background-color: rgb(113, 113, 242);
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+}
+.inboxBtn a{
+    text-decoration: none;
+    color: #fff;
+}
+.emailBtn{
+    padding: 10px 20px;
+    border: none;
+    outline: none;
+    background-color: transparent;
+    border: 1px solid rgb(113, 113, 242);
+    border-radius: 4px;
+    color: #fff;
+    position: relative;
+    cursor: pointer;
+}
+.Tempicon{
+    margin-top: 20px;
+    width: 100%;
+}
+.Tempicon > div{
+    display: flex;
+    gap: 2em;
+    color: #777;
+}
+.emailBtn::before{
+    content: "";
+    position: absolute;
+    width: 0%;
+    height: 100%;
+    background-color: rgb(113, 113, 242);
+    top: 0;
+    left: 0;
+    border-radius:3px;
+    z-index: -1;
+}
+.emailBtn:hover::before{
+    width: 100%;
+    transition: 0.2s linear;
+}
+
+#inboxPage{
+    box-sizing: border-box;
+    padding: 3%;
+    scroll-behavior: smooth;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgb(238, 238, 238);
+}
+.inbox-header{
+    background-color: #fff;
+    border-radius: 20px;
+    color: black;
+    width: 100%;
+    padding: 20px;
+} 
+.inbox-header h2{
+    margin-bottom: 40px;
+}
+.inbox-header > div{
+    display: flex;
+    align-items: center;
+    font-size: 1.2em;
+}
+.inbox-header > div span{
+    display: flex;
+    gap: 0.5em;
+    align-items: center;
+    color: #333;
+}
+.inboxPage-container{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 2em;
+}
+#emailContent{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    color: #333;
+    height: 400px;
+    overflow-y: auto;
+}
+.emailContent{
+    margin-bottom: 15px;
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 4px;
+}
+.emailContent:hover{
+    box-shadow: 0px 0px 5px 5px #e0e0e0;
+}
+.emailContent details{
+    cursor: pointer;
+}
+#emailContent img{
+    width: 20%;
+    margin-bottom: 1em;
+    align-self: center;
+}
+#emailContent > div{
+    align-self: center;
+
+}
+#emailContent p{
+    color: #666;
+}
+.upArrow{
+    position: fixed;
+    bottom: 10px;
+    right: 20px;
+    color: #333;
+    background-color: rgb(113, 113, 242);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    font-size: 1.2em;
+    cursor: pointer;
+    animation: btnUpNDown 2s linear infinite;
+}
+.upArrow a{
+    color: #fff;
+    text-decoration: none;
+}
+@keyframes btnUpNDown {
+    0%{
+        transform: translateY(0px);
+    }
+    50%{
+        transform: translateY(-10px);
+    }
+    100%{
+        transform: translateY(0px);
+    }
+}
+.blink{
+    animation: blinkMail 0.5s linear infinite;
+}
+
+@keyframes blinkMail {
+    0%{
+        opacity: 0;
+    }
+    100%{
+        opacity: 1;
+    }
+}

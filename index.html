@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random mail</title>
+    <link rel="stylesheet" href="./syle.css">
+    <script src="https://kit.fontawesome.com/06f2b8b551.js" crossorigin="anonymous"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
+    </style>
+</head>
+<body>
+    <div id="container" class="container">
+        <div class="child1">
+            <!-- navbar -->
+            <div class="navbar">
+                <div>
+                    <h1>.Gap Mail</h1>
+                </div>
+                <div class="navLink">
+                    <a id="active" href="index.html">Home</a>
+                    <a href="#">About us</a>
+                    <a href="#">Privacy</a>
+                    <a href="#">Terms</a>
+                </div>
+            </div>
+            <!-- temporary email content -->
+            <div class="tempMailContent">
+                <h1>Free Temporary Email.</h1>
+                <p>Receive emails anonymously with our free, private,
+                    and secure temporary email address generator
+                </p>
+                <div class="Tempicon">
+                    <div>
+                        <span><i class="fa-solid fa-hourglass"></i><p> Valid for 1 hour</p></span>
+                        <span><i class="fa-solid fa-gear"></i><p>Free</p></span>
+                        <span><i class="fa-solid fa-lock"></i><p>Secure</p></span>
+                    </div>
+                </div>
+                <div>
+
+                </div>
+            </div>
+            <!-- generate email container -->
+            <div class="emailBox">
+                <h4>Your Temporary Email Address</h4>
+                <div class="email-container">
+                    <input readonly type="text" id="email" placeholder="**************">
+                    <i id="clipboard" class="fa-regular fa-copy"></i>
+                </div>
+                <button class="inboxBtn"><a href="#inboxPage">Check Inbox</a></button>
+                <button onclick="getTempEmail()" id="fetchMail" class="emailBtn">Change Email</button>
+            </div>
+        </div>
+        <div class="child2">
+            <img src="./undraw_team-chat_kjj8.svg" alt="">
+        </div>
+    </div>
+
+
+    <div id="inboxPage">
+        <div class="inboxPage-container">
+            <div class="inbox-header">
+                <h2>.Gap Mail</h2>
+                <div>
+                    <span style="display: flex; gap: 5px; align-items: center;"><i class="fa-solid fa-envelopes-bulk"></i><p id="mailFrom">No Email Yet</p></span>
+                </div>
+            </div>
+            <!-- email content -->
+            <div id="checkBoxes">
+                <div style="display: flex; width: 100%; gap: 1em; margin-bottom: 20px;">
+                    <h5 style="color: black;"><input type="checkbox" name="selectAll" id="selectAll"> Select all</h5>
+                    <h5 id="refreshBtn" style="color: black;"><i class="fa-solid fa-rotate-right"></i> Refresh</h5>
+                    <h5 id="inboxBtn" style="color: black;"><i class="fa-solid fa-repeat"></i> Load Message</h5>
+                </div>
+                <div id="emailContent">
+                    <img src="./undraw_mail-sent_ujev.svg" alt="">
+                    <div>
+                        <h3>Your inbox is empty</h3>
+                        <p>Awaiting for incoming emails</p>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <div class="upArrow">
+        <a href="#container"><i class="fa-solid fa-arrow-up"></i></a> 
+    </div>
+    <!-- <i class="fa-solid fa-rotate-right"></i> -->
+    <script src="./script.js"></script>
+</body>
+</html>

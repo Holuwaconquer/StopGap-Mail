@@ -13,7 +13,7 @@ let sidToken = null;
 let lastMailId = null;
 let unreadCount = 0;
 
-const AUTO_REFRESH_INTERVAL = 10000;
+const AUTO_REFRESH_INTERVAL = 5000;
 const dingSound = new Audio('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg');
 
 // Helper to update unread count in tab title
@@ -111,7 +111,7 @@ async function fetchEmail(emailId) {
 
         // Update banner
         mailFrom.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 0.7em; width: 100%;">
+            <div class="mailfromJs" style="display: flex; align-items: center; gap: 0.7em; width: 100%;">
                 <h4>New Email Received:</h4>
                 <p><strong>From:</strong> ${data.mail_from}</p>
                 <p><strong>Subject:</strong> ${data.mail_subject}...</p>
@@ -122,12 +122,14 @@ async function fetchEmail(emailId) {
 
 // Check for new mail
 async function checkInbox(showNotification = true) {
+    inboxBtn.innerHTML = `<h5 id="inboxBtn" style="color: black;"><i id="messageIcon" class="fa-solid fa-repeat"></i> Message Loading</h5>`
     const data = await apiFetch({
         f: 'check_email',
         sid_token: sidToken,
         seq: 0
     });
 
+    inboxBtn.innerHTML = `<h5 id="inboxBtn" style="color: black;"><i id="messageIcon" class="fa-solid fa-repeat"></i> Load Message</h5>`
     if (data && data.list && data.list.length > 0) {
         const latest = data.list[0];
         if (latest.mail_id !== lastMailId) {
@@ -139,7 +141,7 @@ async function checkInbox(showNotification = true) {
                 showNewMailNotification(latest.mail_from, latest.mail_subject);
                 dingSound.play().catch(e => console.warn("Sound play failed:", e));
             }
-
+            
             await fetchEmail(latest.mail_id);
             return true;
         }
@@ -148,35 +150,30 @@ async function checkInbox(showNotification = true) {
     return false;
 }
 
-// Auto refresh emails
+
 function startAutoRefresh() {
     setInterval(() => checkInbox(true), AUTO_REFRESH_INTERVAL);
 }
 
-// Refresh button logic
 refreshBtn.addEventListener('click', async () => {
     refreshBtn.disabled = true;
     refreshBtn.innerHTML = `<i class="fa fa-spinner fa-spin"></i> Refreshing...`;
-
-    // Clear UI and storage
-    emailContent.innerHTML = '';
-    localStorage.removeItem('savedEmails');
 
     await checkInbox();
     refreshBtn.innerHTML = '🔄 Refresh Email';
     refreshBtn.disabled = false;
 });
 
-// Start button
+
 inboxBtn.addEventListener('click', async () => {
     emailContent.innerHTML = '';
     unreadCount = 0;
     updateUnreadCounter();
-    await checkInbox(false); // Initial check
+    await checkInbox(false);
     startAutoRefresh();
 });
 
-// Load saved state on page load
+
 window.addEventListener('load', async () => {
     const storedEmail = localStorage.getItem('tempEmail');
     const storedSid = localStorage.getItem('sidToken');
@@ -189,10 +186,8 @@ window.addEventListener('load', async () => {
         await getTempEmail();
     }
 
-    // Load saved messages
     emailContent.innerHTML = savedEmails.join('');
 
-    // Request notification permission
     if (Notification.permission !== 'granted') {
         Notification.requestPermission();
     }

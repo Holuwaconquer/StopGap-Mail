@@ -199,3 +199,6 @@ const goHome = () =>{
 const goMail = () =>{
     location.href = "#inboxPage"
 }
+const goAbout = () =>{
+    location.href = "about.html"
+}

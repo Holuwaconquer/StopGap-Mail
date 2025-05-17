@@ -338,7 +338,6 @@ body{
     .child2 img{
         width: 100%;
         margin: 40px 0;
-        /* display: none; */
     }
     .emailBox{
         padding: 25px 30px;
@@ -360,8 +359,8 @@ body{
         bottom: 0;
         z-index: 1000;
         background-color: rgb(113, 113, 242);
-        border-top-left-radius: 30px;
-        border-top-right-radius: 30px;
+        border-top-left-radius: 40px;
+        border-top-right-radius: 40px;
     }
     .bottomNav .navDiv{
         display: flex;

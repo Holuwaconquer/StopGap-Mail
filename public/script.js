@@ -14,10 +14,23 @@ let lastMailId = null;
 let unreadCount = 0;
 
 const AUTO_REFRESH_INTERVAL = 10000;
-
-
 const dingSound = new Audio('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg');
 
+// Helper to update unread count in tab title
+function updateUnreadCounter() {
+    document.title = unreadCount > 0 ? `(${unreadCount}) New Email` : 'Email Inbox';
+}
+
+// Notification display
+function showNewMailNotification(from, subject) {
+    if (Notification.permission === "granted") {
+        new Notification("📧 New Email", {
+            body: `From: ${from}\nSubject: ${subject}`,
+        });
+    }
+}
+
+// API fetcher
 const apiFetch = async (params = {}) => {
     const url = new URL(mailApi);
     Object.entries(params).forEach(([key, value]) => {
@@ -28,13 +41,9 @@ const apiFetch = async (params = {}) => {
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const text = await response.text();
-        if (!text) {
-            console.warn('Received empty response from API.');
-            return null;
-        }
+        if (!text) return null;
 
         const data = JSON.parse(text);
-        console.log('API Response:', data);
         return data;
     } catch (error) {
         console.error('Fetch error:', error);
@@ -42,17 +51,20 @@ const apiFetch = async (params = {}) => {
     }
 };
 
+// Generate temp email (and save to localStorage)
 async function getTempEmail() {
     const data = await apiFetch({ f: 'get_email_address' });
     if (data) {
         email.value = data.email_addr;
         sidToken = data.sid_token;
-        
-    } else {
-        console.error('Error getting temp email');
+
+        // Save to localStorage
+        localStorage.setItem('tempEmail', data.email_addr);
+        localStorage.setItem('sidToken', data.sid_token);
     }
 }
 
+// Clipboard
 clipboard.addEventListener('click', async () => {
     try {
         await navigator.clipboard.writeText(email.value);
@@ -63,6 +75,52 @@ clipboard.addEventListener('click', async () => {
     }
 });
 
+// Fetch email and display
+async function fetchEmail(emailId) {
+    const data = await apiFetch({
+        f: 'fetch_email',
+        sid_token: sidToken,
+        email_id: emailId
+    });
+
+    if (data) {
+        const emailHTML = `
+            <div class="emailContent" style='margin-bottom: 10px; color: black; width: 100%'>
+                <div style='display: flex; justify-content: space-between; align-items: center'>
+                    <div>
+                        <input type="checkbox" name="email-subject">
+                        <label>${data.mail_subject}</label>
+                    </div>
+                    <p>${data.mail_date}</p>
+                </div>
+                <details>
+                    <summary>View Body</summary>
+                    <p><strong>From:</strong> ${data.mail_from}</p>
+                    <p>${data.mail_body}</p>
+                </details>
+                <hr>
+            </div>
+        `;
+
+        emailContent.innerHTML += emailHTML;
+
+        // Save to localStorage
+        const savedEmails = JSON.parse(localStorage.getItem('savedEmails')) || [];
+        savedEmails.push(emailHTML);
+        localStorage.setItem('savedEmails', JSON.stringify(savedEmails));
+
+        // Update banner
+        mailFrom.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 0.7em; width: 100%;">
+                <h4>New Email Received:</h4>
+                <p><strong>From:</strong> ${data.mail_from}</p>
+                <p><strong>Subject:</strong> ${data.mail_subject}...</p>
+            </div>`;
+        mailFrom.classList.add('blink');
+    }
+}
+
+// Check for new mail
 async function checkInbox(showNotification = true) {
     const data = await apiFetch({
         f: 'check_email',
@@ -90,78 +148,52 @@ async function checkInbox(showNotification = true) {
     return false;
 }
 
-function updateUnreadCounter() {
-    document.title = unreadCount > 0 ? `(${unreadCount}) New Email` : 'Email Inbox';
-}
-
-function showNewMailNotification(from, subject) {
-    if (Notification.permission === "granted") {
-        new Notification("📧 New Email", {
-            body: `From: ${from}\nSubject: ${subject}`,
-        });
-    }
-}
-
-async function fetchEmail(emailId) {
-    const data = await apiFetch({
-        f: 'fetch_email',
-        sid_token: sidToken,
-        email_id: emailId
-    });
-
-    if (data) {
-        emailContent.innerHTML += `
-            <div class="emailContent" style='margin-bottom: 10px; color: black; width: 100%'>
-                <div style='display: flex; justify-content: space-between; align-items: center'>
-                    <div>
-                        <input type="checkbox" name="email-subject">
-                        <label>${data.mail_subject}</label>
-                    </div>
-                    <p>${data.mail_date}</p>
-                </div>
-                <details>
-                    <summary>View Body</summary>
-                    <p><strong>From:</strong> ${data.mail_from}</p>
-                    <p>${data.mail_body}</p>
-                </details>
-                <hr>
-            </div>
-        `;
-        mailFrom.innerHTML =`
-            <div style="display: flex; align-items: center; gap: 0.7em; width: 100%;">
-                <h4>New Email Received:</h4>
-                <p><strong>From:</strong> ${data.mail_from}</p>
-                <p><strong>Subject:</strong> ${data.mail_subject}...</p>
-            </div>`
-        
-        mailFrom.classList.add('blink')
-    }
-}
-
+// Auto refresh emails
 function startAutoRefresh() {
     setInterval(() => checkInbox(true), AUTO_REFRESH_INTERVAL);
 }
 
+// Refresh button logic
 refreshBtn.addEventListener('click', async () => {
     refreshBtn.disabled = true;
     refreshBtn.innerHTML = `<i class="fa fa-spinner fa-spin"></i> Refreshing...`;
+
+    // Clear UI and storage
+    emailContent.innerHTML = '';
+    localStorage.removeItem('savedEmails');
+
     await checkInbox();
     refreshBtn.innerHTML = '🔄 Refresh Email';
     refreshBtn.disabled = false;
 });
 
+// Start button
 inboxBtn.addEventListener('click', async () => {
     emailContent.innerHTML = '';
     unreadCount = 0;
     updateUnreadCounter();
-    await checkInbox(false);
-    startAutoRefresh(); 
+    await checkInbox(false); // Initial check
+    startAutoRefresh();
 });
 
+// Load saved state on page load
 window.addEventListener('load', async () => {
-    await getTempEmail();
-    if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-        Notification.requestPermission();
+    const storedEmail = localStorage.getItem('tempEmail');
+    const storedSid = localStorage.getItem('sidToken');
+    const savedEmails = JSON.parse(localStorage.getItem('savedEmails')) || [];
+
+    if (storedEmail && storedSid) {
+        email.value = storedEmail;
+        sidToken = storedSid;
+    } else {
+        await getTempEmail();
     }
 
+    // Load saved messages
+    emailContent.innerHTML = savedEmails.join('');
+
+    // Request notification permission
+    if (Notification.permission !== 'granted') {
+        Notification.requestPermission();
+    }
 });

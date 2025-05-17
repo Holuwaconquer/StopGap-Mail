@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>.Gap Mail | Temporary E-Mail Address with mail inbox</title>
     <link rel="stylesheet" href="./syle.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="./asset/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./asset/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./asset/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
     <script src="https://kit.fontawesome.com/06f2b8b551.js" crossorigin="anonymous"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
@@ -54,7 +58,7 @@
             </div>
         </div>
         <div class="child2">
-            <img src="./undraw_team-chat_kjj8.svg" alt="">
+            <img src="./asset/undraw_team-chat_kjj8.svg" alt="">
         </div>
     </div>
 
@@ -75,7 +79,7 @@
                     <h5 id="inboxBtn" style="color: black;"><i class="fa-solid fa-repeat"></i> Load Message</h5>
                 </div>
                 <div id="emailContent">
-                    <img src="./undraw_mail-sent_ujev.svg" alt="">
+                    <img src="./asset/undraw_mail-sent_ujev.svg" alt="">
                     <div>
                         <h3>Your inbox is empty</h3>
                         <p>Awaiting for incoming emails</p>
@@ -89,7 +93,34 @@
     <div class="upArrow">
         <a href="#container"><i class="fa-solid fa-arrow-up"></i></a> 
     </div>
+    <div>
+      <div>
+        <i class="fa-solid fa-house"></i>
+        <i class="fa-solid fa-envelope-open-text"></i>
+        <i class="fa-solid fa-id-badge"></i>
+      </div>
+    </div>
+
     <!-- <i class="fa-solid fa-rotate-right"></i> -->
     <script src="./script.js"></script>
+    <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBouRtwqQKZoQrH5BljxokcLyVqJhGyljg",
+    authDomain: "stopgap-f65dc.firebaseapp.com",
+    projectId: "stopgap-f65dc",
+    storageBucket: "stopgap-f65dc.firebasestorage.app",
+    messagingSenderId: "778516901929",
+    appId: "1:778516901929:web:9fbb81db3c3ef63bd22c38"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+</script>
 </body>
 </html>

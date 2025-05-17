@@ -197,3 +197,10 @@ window.addEventListener('load', async () => {
         Notification.requestPermission();
     }
 });
+
+const goHome = () =>{
+    location.href = "#container"
+}
+const goMail = () =>{
+    location.href = "#inboxPage"
+}

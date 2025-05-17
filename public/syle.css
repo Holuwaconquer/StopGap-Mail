@@ -394,4 +394,26 @@ body{
     .emailBtn{
         margin-left: 10px;
     }
+    .installBtn{
+        transform: translateX(50%);
+    }
+
+}
+.checkicon h5, button{
+    cursor: pointer;
+}
+.installBtn{
+    position: fixed;
+    top: 10px;
+    right: 10px;
+}
+.installBtn button{
+    background-color: rgba(113, 113, 242, 0.459);
+    color: #fff;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    padding: 12px 20px;
+    border-radius: 4px;
+    backdrop-filter: blur(1);
 }

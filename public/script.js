@@ -7,6 +7,9 @@ const emailContent = document.getElementById('emailContent');
 const inboxBtn = document.getElementById('inboxBtn');
 const checkBoxes = document.getElementById('checkBoxes');
 const refreshBtn = document.getElementById('refreshBtn');
+const selectAllCheckbox = document.getElementById('selectAll');
+const deleteSelectedBtn = document.getElementById('deleteSelected');
+const deleteAllBtn = document.getElementById('deleteAll');
 
 const mailApi = 'https://api.guerrillamail.com/ajax.php';
 let sidToken = null;
@@ -85,22 +88,23 @@ async function fetchEmail(emailId) {
 
     if (data) {
         const emailHTML = `
-            <div class="emailContent" style='margin-bottom: 10px; color: black; width: 100%'>
+            <div class="emailContent" data-id="${data.mail_id}" style='margin-bottom: 10px; color: black; width: 100%'>
                 <div style='display: flex; justify-content: space-between; align-items: center'>
-                    <div>
-                        <input type="checkbox" name="email-subject">
-                        <label>${data.mail_subject}</label>
-                    </div>
-                    <p>${data.mail_date}</p>
+                <div>
+                    <input type="checkbox" class="email-checkbox" data-id="${data.mail_id}">
+                    <label>${data.mail_subject}</label>
+                </div>
+                <p>${data.mail_date}</p>
                 </div>
                 <details>
-                    <summary>View Body</summary>
-                    <p><strong>From:</strong> ${data.mail_from}</p>
-                    <p>${data.mail_body}</p>
+                <summary>View Body</summary>
+                <p><strong>From:</strong> ${data.mail_from}</p>
+                <p>${data.mail_body}</p>
                 </details>
                 <hr>
             </div>
-        `;
+            `;
+
 
         emailContent.innerHTML += emailHTML;
 
@@ -202,3 +206,75 @@ const goMail = () =>{
 const goAbout = () =>{
     location.href = "about.html"
 }
+
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(reg => console.log('Service Worker registered.', reg))
+      .catch(err => console.error('Service Worker registration failed:', err));
+  });
+}
+
+let deferredPrompt;
+let installBtn = document.getElementById('installBtn')
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'block';
+
+    installBtn.addEventListener('click', () => {
+        installBtn.style.display = 'none';
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('User accepted the install prompt');
+            } else {
+                console.log('User dismissed the install prompt');
+            }
+            deferredPrompt = null;
+        });
+    });
+});
+
+
+selectAllCheckbox.addEventListener('change', () => {
+  const checkboxes = document.querySelectorAll('.email-checkbox');
+  checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+});
+
+deleteSelectedBtn.addEventListener('click', () => {
+  const selected = document.querySelectorAll('.email-checkbox:checked');
+  if (selected.length === 0) return;
+
+  // Remove from DOM
+  selected.forEach(cb => {
+    const container = cb.closest('.emailContent');
+    if (container) container.remove();
+  });
+
+  // Remove from localStorage
+  const allEmails = JSON.parse(localStorage.getItem('savedEmails')) || [];
+  const remainingEmails = [];
+
+  allEmails.forEach(html => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const checkbox = doc.querySelector('.email-checkbox');
+    const id = checkbox?.dataset?.id;
+
+    // Keep if not in selected
+    if (!Array.from(selected).some(cb => cb.dataset.id === id)) {
+      remainingEmails.push(html);
+    }
+  });
+
+  localStorage.setItem('savedEmails', JSON.stringify(remainingEmails));
+});
+
+deleteAllBtn.addEventListener('click', () => {
+  if (!confirm("Are you sure you want to delete all messages?")) return;
+
+  emailContent.innerHTML = '';
+  localStorage.removeItem('savedEmails');
+});

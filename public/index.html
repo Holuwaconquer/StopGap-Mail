@@ -8,13 +8,18 @@
     <link rel="apple-touch-icon" sizes="180x180" href="./asset/android-chrome-192x192.png">
     <link rel="icon" type="image/png" sizes="32x32" href="./asset/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="./asset/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
+    <!-- <link rel="manifest" href="/site.webmanifest"> -->
+    <link rel="manifest" href="./manifest.json" />
+    <meta name="theme-color" content="#7171F2" />
     <script src="https://kit.fontawesome.com/06f2b8b551.js" crossorigin="anonymous"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
     </style>
 </head>
 <body>
+  <div class="installBtn">
+    <button style="display: none;" id="installBtn">Install App</button>
+  </div>
     <div id="container" class="container">
         <div class="child1">
             <!-- navbar -->
@@ -72,8 +77,10 @@
             </div>
             <!-- email content -->
             <div id="checkBoxes">
-                <div style="display: flex; width: 100%; gap: 1em; margin-bottom: 20px;">
+                <div class="checkicon" style="display: flex; width: 100%; gap: 1em; margin-bottom: 20px;">
                     <h5 style="color: black;"><input type="checkbox" name="selectAll" id="selectAll"> Select all</h5>
+                    <button id="deleteSelected">🗑️ Delete Selected</button>
+                    <button id="deleteAll">🗑️ Delete All</button>
                     <h5 id="refreshBtn" style="color: black;"><i class="fa-solid fa-rotate-right"></i> Refresh</h5>
                     <h5 id="inboxBtn" style="color: black;"><i id="messageIcon" class="fa-solid fa-repeat"></i> Load Message</h5>
                 </div>

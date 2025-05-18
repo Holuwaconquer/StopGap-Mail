@@ -78,11 +78,17 @@
             <!-- email content -->
             <div id="checkBoxes">
                 <div class="checkicon" style="display: flex; width: 100%; gap: 1em; margin-bottom: 20px;">
-                    <h5 style="color: black;"><input type="checkbox" name="selectAll" id="selectAll"> Select all</h5>
+                    <button>
+                        <h5 style="color: black;"><input type="checkbox" name="selectAll" id="selectAll"> Select all</h5>
+                    </button>
                     <button id="deleteSelected">🗑️ Delete Selected</button>
                     <button id="deleteAll">🗑️ Delete All</button>
-                    <h5 id="refreshBtn" style="color: black;"><i class="fa-solid fa-rotate-right"></i> Refresh</h5>
-                    <h5 id="inboxBtn" style="color: black;"><i id="messageIcon" class="fa-solid fa-repeat"></i> Load Message</h5>
+                    <button id="refreshBtn">
+                        <h5 style="color: black;"><i class="fa-solid fa-rotate-right"></i> Refresh</h5>
+                    </button>
+                    <button id="inboxBtn">
+                        <h5 style="color: black;"><i id="messageIcon" class="fa-solid fa-repeat"></i> Load Message</h5>
+                    </button>
                 </div>
                 <div id="emailContent">
                     <img src="./asset/undraw_mail-sent_ujev.svg" alt="">
@@ -95,6 +101,34 @@
             </div>
         </div>
     </div>
+
+    <div id="aboutPage" class="container">
+    <h1>About .Gap Mail</h1>
+    <p><strong>.Gap (StopGap) Mail</strong> is a lightweight web-based tool that allows users to instantly generate a disposable, temporary email address. It can be used to receive verification emails, confirmation codes, or other one-time messages without revealing your real email address.</p>
+
+    <p>This tool is especially useful for:</p>
+    <ul>
+      <li>Signing up for websites without using your personal email</li>
+      <li>Reducing spam in your main inbox</li>
+      <li>Testing email-based functionality as a developer</li>
+    </ul>
+
+    <h2>Features</h2>
+    <ul>
+      <li>Instantly generate a temp email address</li>
+      <li>Live polling for incoming messages</li>
+      <li>Browser notifications for new mail</li>
+      <li>Copy email address to clipboard</li>
+      <li>Simple, fast, and mobile-friendly UI</li>
+    </ul>
+
+
+
+    <footer>
+      &copy; 2025 <strong>.Gap Mail</strong> — Built by <a href="https://github.com/Holuwaconquer">StopGap Team</a>
+      <br><a href="./index.html">Back to Home</a>
+    </footer>
+  </div>
 
     <div class="upArrow">
         <a href="#container"><i class="fa-solid fa-arrow-up"></i></a> 
@@ -120,15 +154,7 @@
     <script src="./script.js"></script>
     <script src="./firebase-config.js"></script>
     <script type="module">
-  // Import the functions you need from the SDKs you need
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  
-
-  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
 </script>
 </body>

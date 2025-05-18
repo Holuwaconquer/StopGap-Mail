@@ -296,6 +296,9 @@ body{
         width: 100%;
 
     }
+    #emailContent{
+    height: 800px;
+}
     .navLink{
         display: none;
     }
@@ -397,10 +400,21 @@ body{
     .installBtn{
         transform: translateX(50%);
     }
+    #aboutPage{
+        padding: 2rem;
+    }
 
+    #aboutPage ul li{
+        list-style-type: none;
+    }
 }
-.checkicon h5, button{
+.checkicon button{
     cursor: pointer;
+    padding: 10px;
+    border: 1px solid rgb(113, 113, 242);
+    border-radius: 4px;
+    position: relative;
+    z-index: 2;
 }
 .installBtn{
     position: fixed;

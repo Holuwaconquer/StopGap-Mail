@@ -1,3 +1,4 @@
+// DOM elements
 const fetchMail = document.getElementById('fetchMail');
 const email = document.getElementById('email');
 const clipboard = document.getElementById('clipboard');
@@ -10,6 +11,7 @@ const refreshBtn = document.getElementById('refreshBtn');
 const selectAllCheckbox = document.getElementById('selectAll');
 const deleteSelectedBtn = document.getElementById('deleteSelected');
 const deleteAllBtn = document.getElementById('deleteAll');
+const installBtn = document.getElementById('installBtn');
 
 const mailApi = 'https://api.guerrillamail.com/ajax.php';
 let sidToken = null;
@@ -19,122 +21,108 @@ let unreadCount = 0;
 const AUTO_REFRESH_INTERVAL = 5000;
 const dingSound = new Audio('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg');
 
-// Helper to update unread count in tab title
 function updateUnreadCounter() {
     document.title = unreadCount > 0 ? `(${unreadCount}) New Email` : 'Email Inbox';
 }
 
-// Notification display
 function showNewMailNotification(from, subject) {
     if (Notification.permission === "granted") {
-        new Notification("📧 New Email", {
+        new Notification("\ud83d\udce7 New Email", {
             body: `From: ${from}\nSubject: ${subject}`,
         });
     }
 }
 
-// API fetcher
 const apiFetch = async (params = {}) => {
     const url = new URL(mailApi);
-    Object.entries(params).forEach(([key, value]) => {
-        url.searchParams.append(key, value);
-    });
+    Object.entries(params).forEach(([key, value]) => url.searchParams.append(key, value));
 
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const text = await response.text();
         if (!text) return null;
-
-        const data = JSON.parse(text);
-        return data;
+        return JSON.parse(text);
     } catch (error) {
         console.error('Fetch error:', error);
         return null;
     }
 };
 
-// Generate temp email (and save to localStorage)
 async function getTempEmail() {
     const data = await apiFetch({ f: 'get_email_address' });
     if (data) {
         email.value = data.email_addr;
         sidToken = data.sid_token;
-
-        // Save to localStorage
         localStorage.setItem('tempEmail', data.email_addr);
         localStorage.setItem('sidToken', data.sid_token);
     }
 }
 
-// Clipboard
 clipboard.addEventListener('click', async () => {
     try {
         await navigator.clipboard.writeText(email.value);
         clipboard.innerHTML = `<i style="color: rgb(113, 113, 242);" class="fa-solid fa-check"></i>`;
         setTimeout(() => clipboard.innerHTML = 'Copy', 2000);
-    } catch (err) {
+    } catch {
         clipboard.innerHTML = '❌';
     }
 });
 
-// Fetch email and display
-async function fetchEmail(emailId) {
-    const data = await apiFetch({
-        f: 'fetch_email',
-        sid_token: sidToken,
-        email_id: emailId
-    });
-
-    if (data) {
-        const emailHTML = `
-            <div class="emailContent" data-id="${data.mail_id}" style='margin-bottom: 10px; color: black; width: 100%'>
-                <div style='display: flex; justify-content: space-between; align-items: center'>
+function renderEmail(email) {
+    const emailHTML = `
+        <div class="emailContent" data-id="${email.id}" style='margin-bottom: 10px; color: black; width: 100%'>
+            <div style='display: flex; justify-content: space-between; align-items: center'>
                 <div>
-                    <input type="checkbox" class="email-checkbox" data-id="${data.mail_id}">
-                    <label>${data.mail_subject}</label>
+                    <input type="checkbox" class="email-checkbox" data-id="${email.id}">
+                    <label>${email.subject}</label>
                 </div>
-                <p>${data.mail_date}</p>
-                </div>
-                <details>
-                <summary>View Body</summary>
-                <p><strong>From:</strong> ${data.mail_from}</p>
-                <p>${data.mail_body}</p>
-                </details>
-                <hr>
+                <p>${email.date}</p>
             </div>
-            `;
+            <details>
+                <summary>View Body</summary>
+                <p><strong>From:</strong> ${email.from}</p>
+                <p>${email.body}</p>
+            </details>
+            <hr>
+        </div>
+    `;
+    emailContent.innerHTML += emailHTML;
+}
 
+async function fetchEmail(emailId) {
+    const data = await apiFetch({ f: 'fetch_email', sid_token: sidToken, email_id: emailId });
+    if (data) {
+        const emailData = {
+            id: data.mail_id,
+            from: data.mail_from,
+            subject: data.mail_subject,
+            body: data.mail_body,
+            date: data.mail_date
+        };
 
-        emailContent.innerHTML += emailHTML;
+        renderEmail(emailData);
 
-        // Save to localStorage
         const savedEmails = JSON.parse(localStorage.getItem('savedEmails')) || [];
-        savedEmails.push(emailHTML);
+        savedEmails.push(emailData);
         localStorage.setItem('savedEmails', JSON.stringify(savedEmails));
 
-        // Update banner
         mailFrom.innerHTML = `
             <div class="mailfromJs" style="display: flex; align-items: center; gap: 0.7em; width: 100%;">
                 <h4>New Email Received:</h4>
-                <p><strong>From:</strong> ${data.mail_from}</p>
-                <p><strong>Subject:</strong> ${data.mail_subject}...</p>
+                <p><strong>From:</strong> ${emailData.from}</p>
+                <p><strong>Subject:</strong> ${emailData.subject}...</p>
             </div>`;
         mailFrom.classList.add('blink');
     }
 }
 
-// Check for new mail
 async function checkInbox(showNotification = true) {
-    inboxBtn.innerHTML = `<h5 id="inboxBtn" style="color: black;"><i id="messageIcon" class="fa-solid fa-repeat"></i> Message Loading</h5>`
-    const data = await apiFetch({
-        f: 'check_email',
-        sid_token: sidToken,
-        seq: 0
-    });
+    inboxBtn.innerHTML = `<h5 style="color: black;"><i class="fa-solid fa-repeat"></i> Message Loading</h5>`;
+    const data = await apiFetch({ f: 'check_email', sid_token: sidToken, seq: 0 });
+    inboxBtn.innerHTML = `<h5 style="color: black;"><i class="fa-solid fa-repeat"></i> Load Message</h5>`;
 
-    inboxBtn.innerHTML = `<h5 id="inboxBtn" style="color: black;"><i id="messageIcon" class="fa-solid fa-repeat"></i> Load Message</h5>`
-    if (data && data.list && data.list.length > 0) {
+    if (data?.list?.length > 0) {
         const latest = data.list[0];
         if (latest.mail_id !== lastMailId) {
             lastMailId = latest.mail_id;
@@ -145,15 +133,13 @@ async function checkInbox(showNotification = true) {
                 showNewMailNotification(latest.mail_from, latest.mail_subject);
                 dingSound.play().catch(e => console.warn("Sound play failed:", e));
             }
-            
+
             await fetchEmail(latest.mail_id);
             return true;
         }
     }
-
     return false;
 }
-
 
 function startAutoRefresh() {
     setInterval(() => checkInbox(true), AUTO_REFRESH_INTERVAL);
@@ -162,12 +148,10 @@ function startAutoRefresh() {
 refreshBtn.addEventListener('click', async () => {
     refreshBtn.disabled = true;
     refreshBtn.innerHTML = `<i class="fa fa-spinner fa-spin"></i> Refreshing...`;
-
     await checkInbox();
     refreshBtn.innerHTML = '🔄 Refresh Email';
     refreshBtn.disabled = false;
 });
-
 
 inboxBtn.addEventListener('click', async () => {
     emailContent.innerHTML = '';
@@ -176,7 +160,6 @@ inboxBtn.addEventListener('click', async () => {
     await checkInbox(false);
     startAutoRefresh();
 });
-
 
 window.addEventListener('load', async () => {
     const storedEmail = localStorage.getItem('tempEmail');
@@ -190,34 +173,50 @@ window.addEventListener('load', async () => {
         await getTempEmail();
     }
 
-    emailContent.innerHTML = savedEmails.join('');
+    savedEmails.forEach(renderEmail);
 
     if (Notification.permission !== 'granted') {
         Notification.requestPermission();
     }
 });
 
-const goHome = () =>{
-    location.href = "#container"
-}
-const goMail = () =>{
-    location.href = "#inboxPage"
-}
-const goAbout = () =>{
-    location.href = "about.html"
-}
+selectAllCheckbox.addEventListener('change', () => {
+    const checkboxes = document.querySelectorAll('.email-checkbox');
+    checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+});
 
+deleteSelectedBtn.addEventListener('click', () => {
+    const selectedIds = Array.from(document.querySelectorAll('.email-checkbox:checked')).map(cb => cb.dataset.id);
+    if (!selectedIds.length) return;
+
+    selectedIds.forEach(id => {
+        const el = document.querySelector(`.emailContent[data-id="${id}"]`);
+        if (el) el.remove();
+    });
+
+    const allEmails = JSON.parse(localStorage.getItem('savedEmails')) || [];
+    const remaining = allEmails.filter(email => !selectedIds.includes(email.id));
+    localStorage.setItem('savedEmails', JSON.stringify(remaining));
+});
+
+deleteAllBtn.addEventListener('click', () => {
+    emailContent.innerHTML = '';
+    localStorage.removeItem('savedEmails');
+});
+
+const goHome = () => location.href = "#container";
+const goMail = () => location.href = "#inboxPage";
+const goAbout = () => location.href = "#aboutPage";
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(reg => console.log('Service Worker registered.', reg))
-      .catch(err => console.error('Service Worker registration failed:', err));
-  });
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then(reg => console.log('Service Worker registered.', reg))
+            .catch(err => console.error('Service Worker registration failed:', err));
+    });
 }
 
 let deferredPrompt;
-let installBtn = document.getElementById('installBtn')
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
@@ -227,54 +226,8 @@ window.addEventListener('beforeinstallprompt', (e) => {
         installBtn.style.display = 'none';
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((choiceResult) => {
-            if (choiceResult.outcome === 'accepted') {
-                console.log('User accepted the install prompt');
-            } else {
-                console.log('User dismissed the install prompt');
-            }
+            console.log(`User ${choiceResult.outcome === 'accepted' ? 'accepted' : 'dismissed'} the install prompt`);
             deferredPrompt = null;
         });
     });
-});
-
-
-selectAllCheckbox.addEventListener('change', () => {
-  const checkboxes = document.querySelectorAll('.email-checkbox');
-  checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
-});
-
-deleteSelectedBtn.addEventListener('click', () => {
-  const selected = document.querySelectorAll('.email-checkbox:checked');
-  if (selected.length === 0) return;
-
-  // Remove from DOM
-  selected.forEach(cb => {
-    const container = cb.closest('.emailContent');
-    if (container) container.remove();
-  });
-
-  // Remove from localStorage
-  const allEmails = JSON.parse(localStorage.getItem('savedEmails')) || [];
-  const remainingEmails = [];
-
-  allEmails.forEach(html => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const checkbox = doc.querySelector('.email-checkbox');
-    const id = checkbox?.dataset?.id;
-
-    // Keep if not in selected
-    if (!Array.from(selected).some(cb => cb.dataset.id === id)) {
-      remainingEmails.push(html);
-    }
-  });
-
-  localStorage.setItem('savedEmails', JSON.stringify(remainingEmails));
-});
-
-deleteAllBtn.addEventListener('click', () => {
-  if (!confirm("Are you sure you want to delete all messages?")) return;
-
-  emailContent.innerHTML = '';
-  localStorage.removeItem('savedEmails');
 });

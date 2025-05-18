@@ -1,4 +1,3 @@
-// DOM elements
 const fetchMail = document.getElementById('fetchMail');
 const email = document.getElementById('email');
 const clipboard = document.getElementById('clipboard');
@@ -21,13 +20,15 @@ let unreadCount = 0;
 const AUTO_REFRESH_INTERVAL = 5000;
 const dingSound = new Audio('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg');
 
+let autoRefreshIntervalId = null;  
+
 function updateUnreadCounter() {
     document.title = unreadCount > 0 ? `(${unreadCount}) New Email` : 'Email Inbox';
 }
 
 function showNewMailNotification(from, subject) {
     if (Notification.permission === "granted") {
-        new Notification("\ud83d\udce7 New Email", {
+        new Notification("📧 New Email", {
             body: `From: ${from}\nSubject: ${subject}`,
         });
     }
@@ -49,7 +50,17 @@ const apiFetch = async (params = {}) => {
     }
 };
 
+function clearEmails() {
+    emailContent.innerHTML = '';
+    unreadCount = 0;
+    updateUnreadCounter();
+    localStorage.removeItem('savedEmails');
+    lastMailId = null;
+    stopAutoRefresh();
+}
+
 async function getTempEmail() {
+    clearEmails();
     const data = await apiFetch({ f: 'get_email_address' });
     if (data) {
         email.value = data.email_addr;
@@ -62,32 +73,36 @@ async function getTempEmail() {
 clipboard.addEventListener('click', async () => {
     try {
         await navigator.clipboard.writeText(email.value);
-        clipboard.innerHTML = `<i style="color: rgb(113, 113, 242);" class="fa-solid fa-check"></i>`;
-        setTimeout(() => clipboard.innerHTML = 'Copy', 2000);
+        setTimeout(() => clipboard.innerHTML = `<small> Copied</small>`, 2000);
     } catch {
         clipboard.innerHTML = '❌';
     }
 });
 
 function renderEmail(email) {
-    const emailHTML = `
-        <div class="emailContent" data-id="${email.id}" style='margin-bottom: 10px; color: black; width: 100%'>
-            <div style='display: flex; justify-content: space-between; align-items: center'>
-                <div>
-                    <input type="checkbox" class="email-checkbox" data-id="${email.id}">
-                    <label>${email.subject}</label>
-                </div>
-                <p>${email.date}</p>
+    const div = document.createElement('div');
+    div.className = 'emailContent';
+    div.setAttribute('data-id', email.id);
+    div.style.marginBottom = '10px';
+    div.style.color = 'black';
+    div.style.width = '100%';
+
+    div.innerHTML = `
+        <div style='display: flex; justify-content: space-between; align-items: center'>
+            <div>
+                <input type="checkbox" class="email-checkbox" data-id="${email.id}">
+                <label>${email.subject}</label>
             </div>
-            <details>
-                <summary>View Body</summary>
-                <p><strong>From:</strong> ${email.from}</p>
-                <p>${email.body}</p>
-            </details>
-            <hr>
+            <p>${email.date}</p>
         </div>
+        <details>
+            <summary>View Body</summary>
+            <p><strong>From:</strong> ${email.from}</p>
+            <p>${email.body}</p>
+        </details>
+        <hr>
     `;
-    emailContent.innerHTML += emailHTML;
+    emailContent.appendChild(div);
 }
 
 async function fetchEmail(emailId) {
@@ -118,9 +133,9 @@ async function fetchEmail(emailId) {
 }
 
 async function checkInbox(showNotification = true) {
-    inboxBtn.innerHTML = `<h5 style="color: black;"><i class="fa-solid fa-repeat"></i> Message Loading</h5>`;
+    inboxBtn.textContent = 'Loading messages...';
     const data = await apiFetch({ f: 'check_email', sid_token: sidToken, seq: 0 });
-    inboxBtn.innerHTML = `<h5 style="color: black;"><i class="fa-solid fa-repeat"></i> Load Message</h5>`;
+    inboxBtn.textContent = 'Load Message';
 
     if (data?.list?.length > 0) {
         const latest = data.list[0];
@@ -142,19 +157,26 @@ async function checkInbox(showNotification = true) {
 }
 
 function startAutoRefresh() {
-    setInterval(() => checkInbox(true), AUTO_REFRESH_INTERVAL);
+    if (autoRefreshIntervalId) return;
+    autoRefreshIntervalId = setInterval(() => checkInbox(true), AUTO_REFRESH_INTERVAL);
+}
+
+function stopAutoRefresh() {
+    if (autoRefreshIntervalId) {
+        clearInterval(autoRefreshIntervalId);
+        autoRefreshIntervalId = null;
+    }
 }
 
 refreshBtn.addEventListener('click', async () => {
     refreshBtn.disabled = true;
-    refreshBtn.innerHTML = `<i class="fa fa-spinner fa-spin"></i> Refreshing...`;
+    refreshBtn.textContent = 'Refreshing...';
     await checkInbox();
-    refreshBtn.innerHTML = '🔄 Refresh Email';
+    refreshBtn.textContent = '🔄 Refresh Email';
     refreshBtn.disabled = false;
 });
 
 inboxBtn.addEventListener('click', async () => {
-    emailContent.innerHTML = '';
     unreadCount = 0;
     updateUnreadCounter();
     await checkInbox(false);
@@ -173,10 +195,12 @@ window.addEventListener('load', async () => {
         await getTempEmail();
     }
 
-    savedEmails.forEach(renderEmail);
+    savedEmails.forEach(item => {
+        if (typeof item === 'object') renderEmail(item);
+    });
 
     if (Notification.permission !== 'granted') {
-        Notification.requestPermission();
+        await Notification.requestPermission();
     }
 });
 
@@ -202,6 +226,10 @@ deleteSelectedBtn.addEventListener('click', () => {
 deleteAllBtn.addEventListener('click', () => {
     emailContent.innerHTML = '';
     localStorage.removeItem('savedEmails');
+    lastMailId = null;
+    unreadCount = 0;
+    updateUnreadCounter();
+    stopAutoRefresh();
 });
 
 const goHome = () => location.href = "#container";
@@ -220,9 +248,9 @@ let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    installBtn.style.display = 'block';
+    if (installBtn) installBtn.style.display = 'block';
 
-    installBtn.addEventListener('click', () => {
+    installBtn?.addEventListener('click', () => {
         installBtn.style.display = 'none';
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((choiceResult) => {
